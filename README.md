@@ -1,6 +1,6 @@
 # IP Calculator 🖥️🔢
 
-![Banner](https://i.imgur.com/example.png) *ASCII art banner from the program*
+![Banner](https://i.imgur.com/CibOkwA.png) *ASCII art banner*
 
 ## 📝 Description
 This is a Python-based IP Calculator that provides detailed network information when given an IP address with CIDR notation. The tool calculates various network properties and offers additional networking utilities.
