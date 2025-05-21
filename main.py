@@ -9,7 +9,7 @@
 # ||                                                                                ||
 # \==================================================================================/
 
-import IPCalculator
+import IpTools
 import prettytable
 from dns_resolver import resolve
 import time
@@ -17,8 +17,8 @@ import os
 import sys
 
 # version 1.0.0
-version = "1.0.0"
-
+version = "1.0.1"
+CPTmode = False
 
 ############ FUNCTIONS ############
 
@@ -34,6 +34,7 @@ def printa(text, delay=0.0005):
         sys.stdout.flush()
         time.sleep(delay)
     print()
+
 banner = """
 /==================================================================================\\
 ||                                                                                ||
@@ -51,9 +52,8 @@ printa("Welcome to the IP Calculator", 0.01)
 printa("o(*￣▽￣*)ブ", 0.01)
 print()
 
-
-def ip_ask(asd=None):
-    if asd==True or asd==None:
+def ip_ask(help=None):
+    if help or help==None:
         printa("Enter the IP address and CIDR (<IP>/<CIDR>)", 0.01)
         printa("Example: 192.168.178.0/24", 0.01)
         printa("For help, type 'help'", 0.01)
@@ -83,6 +83,9 @@ def main(bho=None):
             table.add_row(["ping <hostname>", "Ping a hostname"])
             table.add_row(["nslookup <hostname>", "Resolve a hostname"])
             table.add_row(["tracert <hostname>", "Trace the route to a hostname"])
+            table.add_row(["add <ip> <ammount>", "Add a number to the IP address"])
+            table.add_row(["sub <ip> <ammount>", "Subtract a number from the IP address"])
+            table.add_row(["CPT","toggle Cisco packet Tracer mode"])
 
             print(table)
             main(False)
@@ -104,8 +107,22 @@ def main(bho=None):
             printa(banner, 0.0001)
             main(False)
             return
+        if input_ip.lower() == "cpt":
+            global CPTmode
+            CPTmode = not CPTmode
+            print("CPT mode ON" if CPTmode else "CPT mode OFF")
+            main(False)
+            return
         try:
             if input_ip.split(" ")[0] == "ping":
+                if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                    print("Syntax: ping <hostname>", 0.01)
+                    main(False)
+                    return
+                if len(input_ip.split(" ")) != 2:
+                    print("Please enter a valid hostname ( ˘︹˘ )")
+                    main(False)
+                    return
                 hostname = input_ip.split(" ")[1]
                 param = '-n' if os.sys.platform.lower()=='win32' else '-c'
                 response = os.system(f"ping {param} 1 {hostname} >nul 2>&1")
@@ -116,6 +133,14 @@ def main(bho=None):
                 main(False)
                 return
             if input_ip.split(" ")[0] == "nslookup":
+                if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                    print("Syntax: nslookup <hostname>", 0.01)
+                    main(False)
+                    return
+                if len(input_ip.split(" ")) != 2:
+                    print("Please enter a valid hostname ( ˘︹˘ )")
+                    main(False)
+                    return
                 hostname = input_ip.split(" ")[1]
                 # response = os.popen(f"nslookup {hostname}").read()
                 response = resolve(hostname)
@@ -130,9 +155,42 @@ def main(bho=None):
                 main(False)
                 return
             if input_ip.split(" ")[0] == "tracert":
+                if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                    print("Syntax: tracert <hostname>", 0.01)
+                    main(False)
+                    return
+                if len(input_ip.split(" ")) != 2:
+                    print("Please enter a valid hostname ( ˘︹˘ )")
+                    main(False)
+                    return
+            
                 hostname = input_ip.split(" ")[1]
                 response = os.system(f"tracert {hostname}")
                 print(response)
+                main(False)
+                return
+            if input_ip.split(" ")[0] == "add":
+                if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                    print("Syntax: add <ip_addres> <ammount>", 0.01)
+                    main(False)
+                    return
+                if len(input_ip.split(" ")) != 3:
+                    print("Please enter a valid IP address ( ˘︹˘ )")
+                    main(False)
+                    return
+                print(IpTools.IpTools(input_ip.split(" ")[1], 24).add(int(input_ip.split(" ")[2])))
+                main(False)
+                return
+            if input_ip.split(" ")[0] == "sub":
+                if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                    print("Syntax: sub <ip_addres> <ammount>", 0.01)
+                    main(False)
+                    return
+                if len(input_ip.split(" ")) != 3:
+                    print("Please enter a valid IP address ( ˘︹˘ )")
+                    main(False)
+                    return
+                print(IpTools.IpTools(input_ip.split(" ")[1], 24).sub(int(input_ip.split(" ")[2])))
                 main(False)
                 return
         except: pass
@@ -167,25 +225,31 @@ def main(bho=None):
                 exit() 
     except Exception as e:
         print("Please enter a valid IP address (* ￣︿￣)")
-        # print(e)
+        print(e)
         exit()
 
-    ip_calculator = IPCalculator.IPCalculator(ip, cidr)
+    ip_calculator = IpTools.IpTools(ip, cidr)
 
     print()
     table = prettytable.PrettyTable()
     table.field_names = ["Property", "Value"]
     table.align["Value"] = "l"
     table.add_row(["IP Address", f"{ip_calculator.ip}/{ip_calculator.cidr}"])
+    table.add_row(["NetMask", ip_calculator.subnet_mask])
+    table.add_row(["Broadcast Address", ip_calculator.broadcast_address])
     table.add_row(["Network Address", ip_calculator.network_address])
+    table.add_row(["Host Range", ip_calculator.host_range[0] + " - " + ip_calculator.host_range[1]])
+    table.add_row(["Total Hosts", 2**(32 - ip_calculator.cidr) - 2])
+    table.add_row(["Wildcard Mask", ip_calculator.wildcard_mask])
     table.add_row(["Net-ID  bit", ip_calculator.cidr])
     table.add_row(["Host-IP bit", 32 - ip_calculator.cidr])
-    table.add_row(["Total Hosts", 2**(32 - ip_calculator.cidr) - 2])
     table.add_row(["Class", ip_calculator.get_ip_type()+"/"+ip_calculator.classe()])
-    table.add_row(["Broadcast Address", ip_calculator.broadcast_address])
-    table.add_row(["NetMask", ip_calculator.subnet_mask])
-    table.add_row(["Wildcard Mask", ip_calculator.wildcard_mask])
-    table.add_row(["Host Range", ip_calculator.host_range[0] + " - " + ip_calculator.host_range[1]])
+    if CPTmode:
+        table.add_row(["",""])
+        table.add_row(["router", str(IpTools.IpTools(ip_calculator.broadcast_address, ip_calculator.cidr).sub(1))])
+        table.add_row(["server", str(IpTools.IpTools(ip_calculator.broadcast_address, ip_calculator.cidr).sub(2))])
+        table.add_row(["pc1", ip_calculator.add(1)+""])
+        table.add_row(["pc2", ip_calculator.add(2)+""])
     print(table)
 
     main(False)
