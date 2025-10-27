@@ -16,8 +16,7 @@ import time
 import os
 import sys
 
-# version 1.0.0
-version = "1.0.1"
+version = "1.0.2"
 CPTmode = False
 
 ############ FUNCTIONS ############
@@ -86,6 +85,8 @@ def main(bho=None):
             table.add_row(["add <ip> <ammount>", "Add a number to the IP address"])
             table.add_row(["sub <ip> <ammount>", "Subtract a number from the IP address"])
             table.add_row(["CPT","toggle Cisco packet Tracer mode"])
+            table.add_row(["cip", "Convert IP address to a long integer"])
+            table.add_row(["cnum", "Convert long integer to IP address"])
 
             print(table)
             main(False)
@@ -111,6 +112,58 @@ def main(bho=None):
             global CPTmode
             CPTmode = not CPTmode
             print("CPT mode ON" if CPTmode else "CPT mode OFF")
+            main(False)
+            return
+        if input_ip.split(" ")[0] == "add":
+            if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                print("Syntax: add <ip_addres> <ammount>", 0.01)
+                main(False)
+                return
+            if len(input_ip.split(" ")) != 3:
+                print("Please enter a valid IP address ( ˘︹˘ )")
+                main(False)
+                return
+            print(IpTools.IpTools(input_ip.split(" ")[1], 24).add(int(input_ip.split(" ")[2])))
+            main(False)
+            return
+        if input_ip.split(" ")[0] == "sub":
+            if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                print("Syntax: sub <ip_addres> <ammount>", 0.01)
+                main(False)
+                return
+            if len(input_ip.split(" ")) != 3:
+                print("Please enter a valid IP address ( ˘︹˘ )")
+                main(False)
+                return
+            print(IpTools.IpTools(input_ip.split(" ")[1], 24).sub(int(input_ip.split(" ")[2])))
+            main(False)
+            return
+        
+        if input_ip.split(" ")[0] == "cip":
+            if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                printa("Syntax: cip <ip_address>", 0.01)
+                main(False)
+                return
+            if len(input_ip.split(" ")) != 2 or not IpTools.IpTools.check_ip(input_ip.split(" ")[1]):
+                print("Please enter a valid IP address ( ˘︹˘ )")
+                main(False)
+                return
+            temp = IpTools.IpTools(input_ip.split(" ")[1], 24)
+            print(temp.long)
+            main(False)
+            return
+        
+        if input_ip.split(" ")[0] == "cnum":
+            if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
+                printa("Syntax: cnum <ip_address>", 0.01)
+                main(False)
+                return
+            if len(input_ip.split(" ")) != 2:
+                print("Please enter a valid IP address ( ˘︹˘ )")
+                main(False)
+                return
+            long = int(input_ip.split(" ")[1])
+            print(IpTools.IpTools.long_to_ip(long))
             main(False)
             return
         try:
@@ -169,30 +222,6 @@ def main(bho=None):
                 print(response)
                 main(False)
                 return
-            if input_ip.split(" ")[0] == "add":
-                if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
-                    print("Syntax: add <ip_addres> <ammount>", 0.01)
-                    main(False)
-                    return
-                if len(input_ip.split(" ")) != 3:
-                    print("Please enter a valid IP address ( ˘︹˘ )")
-                    main(False)
-                    return
-                print(IpTools.IpTools(input_ip.split(" ")[1], 24).add(int(input_ip.split(" ")[2])))
-                main(False)
-                return
-            if input_ip.split(" ")[0] == "sub":
-                if input_ip.split(" ")[1] == "-h" or input_ip.split(" ")[1] == "--help":
-                    print("Syntax: sub <ip_addres> <ammount>", 0.01)
-                    main(False)
-                    return
-                if len(input_ip.split(" ")) != 3:
-                    print("Please enter a valid IP address ( ˘︹˘ )")
-                    main(False)
-                    return
-                print(IpTools.IpTools(input_ip.split(" ")[1], 24).sub(int(input_ip.split(" ")[2])))
-                main(False)
-                return
         except: pass
         
         ############ ERRORS ############
@@ -203,7 +232,7 @@ def main(bho=None):
             print("(IP) -> ")
             main(False)
             return
-        if "/" not in input_ip or input_ip.count("/") > 1:
+        if "/" not in input_ip or input_ip.count("/") > 1 or input_ip.startswith("/") or input_ip.endswith("/") or input_ip.count(".") != 3:
             print("Please enter a valid IP address ( ˘︹˘ )")
             main(False)
             return
@@ -234,20 +263,17 @@ def main(bho=None):
     table = prettytable.PrettyTable()
     table.field_names = ["Property", "Value"]
     table.align["Value"] = "l"
-    table.add_row(["IP Address", f"{ip_calculator.ip}/{ip_calculator.cidr}"])
+    table.add_row(["Network", f"{ip_calculator.network_address}/{ip_calculator.cidr}"])
+    table.add_row(["Class", ip_calculator.get_ip_type()+"/"+ip_calculator.classe()])
     table.add_row(["NetMask", ip_calculator.subnet_mask])
-    table.add_row(["Broadcast Address", ip_calculator.broadcast_address])
-    table.add_row(["Network Address", ip_calculator.network_address])
+    table.add_row(["Broadcast", ip_calculator.broadcast_address])
     table.add_row(["Host Range", ip_calculator.host_range[0] + " - " + ip_calculator.host_range[1]])
     table.add_row(["Total Hosts", 2**(32 - ip_calculator.cidr) - 2])
     table.add_row(["Wildcard Mask", ip_calculator.wildcard_mask])
-    table.add_row(["Net-ID  bit", ip_calculator.cidr])
-    table.add_row(["Host-IP bit", 32 - ip_calculator.cidr])
-    table.add_row(["Class", ip_calculator.get_ip_type()+"/"+ip_calculator.classe()])
     if CPTmode:
         table.add_row(["",""])
-        table.add_row(["router", str(IpTools.IpTools(ip_calculator.broadcast_address, ip_calculator.cidr).sub(1))])
-        table.add_row(["server", str(IpTools.IpTools(ip_calculator.broadcast_address, ip_calculator.cidr).sub(2))])
+        table.add_row(["Router", str(IpTools.IpTools(ip_calculator.broadcast_address, ip_calculator.cidr).sub(1))])
+        table.add_row(["Server", str(IpTools.IpTools(ip_calculator.broadcast_address, ip_calculator.cidr).sub(2))])
         table.add_row(["pc1", ip_calculator.add(1)+""])
         table.add_row(["pc2", ip_calculator.add(2)+""])
     print(table)

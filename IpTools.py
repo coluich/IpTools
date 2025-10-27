@@ -3,6 +3,7 @@ import ipaddress
 class IpTools:
     def __init__(self, ip, cidr):
         self.ip = ip
+        self.long = self.ip_to_long()
         self.cidr = cidr
         self.network_address = self.calculate_network_address()
         self.broadcast_address = self.calculate_broadcast_address()
@@ -71,7 +72,28 @@ class IpTools:
             return "Reserved"
         else:
             return "Public"
-        
+
+    def ip_to_long(self):
+        # convert IP address to long integer
+        ip_parts = self.ip.split('.')
+        long = int(ip_parts[0])*(256**3) + int(ip_parts[1])*(256**2) + int(ip_parts[2])*(256**1) + int(ip_parts[3])*(256**0)
+        return long
+    
+    @staticmethod
+    def long_to_ip(value):
+        # convert long integer to IP address using integer arithmetic
+        n4 = (value >> 24) & 0xFF
+        n3 = (value >> 16) & 0xFF
+        n2 = (value >> 8) & 0xFF
+        n1 = value & 0xFF
+        return f"{n4}.{n3}.{n2}.{n1}"
+    
+    @staticmethod
+    def check_ip(ip):
+        # check if the ip address is valid
+        return ip and len(ip.split(".")) == 4 and all(b!="" for b in ip.split(".")) and all(0 <= int(b) <= 255 for b in ip.split("."))
+
+
     def add(self, n):
         # save all 4 byte of the ip address on 4 different variables
         b1, b2, b3, b4 = map(int, self.ip.split("."))

@@ -56,6 +56,8 @@ Enter an IP address with CIDR notation when prompted:
 | `add <ip> <value>` | Add value to an IP address |
 | `sub <ip> <value>` | Subtract value from an IP address |
 | `cpt` | Toggle Cisco Packet Tracer mode |
+| `cip` | Convert IP address to a long integer |
+| `cnum` | Convert long integer to IP address |
 
 ## 📊 Example Output
 ```
@@ -87,4 +89,4 @@ This project is open-source and available for personal and educational use.
 Created by @coluich
 
 ## 🔄 Version
-Current version: 1.0.1
+Current version: 1.0.2
